@@ -4,15 +4,18 @@ import { MatrixComponent } from './components/matrix/matrix.component';
 import { StorageService } from './services/storage.service';
 import { SwitchOption } from './models/switch-option.model';
 
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormComponent, MatrixComponent],
+  imports: [CommonModule, FormComponent, MatrixComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App implements OnInit {
   options: SwitchOption[] = [];
+  showWizard: boolean = false;
 
   constructor(private storageService: StorageService) {}
 
@@ -25,7 +28,12 @@ export class App implements OnInit {
   }
 
   onOptionAdded() {
+    this.showWizard = false;
     this.loadOptions();
+  }
+
+  toggleWizard() {
+    this.showWizard = !this.showWizard;
   }
 
   onDeleteOption(id: string) {

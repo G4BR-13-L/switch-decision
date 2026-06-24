@@ -15,7 +15,12 @@
   </header>
 
   <main>
-    <app-form (optionAdded)="onOptionAdded()"></app-form>
-    <app-matrix [options]="options" (delete)="onDeleteOption($event)"></app-matrix>
+    <app-form *ngIf="showWizard" (optionAdded)="onOptionAdded()" (cancelled)="toggleWizard()"></app-form>
+    
+    <div *ngIf="!showWizard">
+      <app-matrix [options]="options" (delete)="onDeleteOption($event)"></app-matrix>
+      
+      <button class="fab-btn" (click)="toggleWizard()">+</button>
+    </div>
   </main>
 </div>
