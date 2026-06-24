@@ -1,0 +1,21 @@
+<div class="app-container">
+  <header>
+    <div class="header-content">
+      <div>
+        <h1>Decision Matrix - Nintendo Switch</h1>
+        <p>A ferramenta definitiva para te ajudar a escolher o melhor console</p>
+      </div>
+      <div class="header-actions-bar">
+        <button class="btn-secondary" (click)="exportCsv()">Exportar CSV</button>
+        <button class="btn-secondary" (click)="fileInput.click()">Importar CSV</button>
+        <input type="file" #fileInput (change)="importCsv($event)" accept=".csv,.json" style="display: none;">
+        <button class="btn-danger" (click)="clearStorage()">Limpar Storage</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <app-form (optionAdded)="onOptionAdded()"></app-form>
+    <app-matrix [options]="options" (delete)="onDeleteOption($event)"></app-matrix>
+  </main>
+</div>
