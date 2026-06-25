@@ -28,14 +28,15 @@ import { v4 as uuidv4 } from 'uuid';
       </div>
 
       <!-- CORPO DO WIZARD -->
-      <form [formGroup]="switchForm">
+      <!-- Removemos form tag para evitar submits implicitos com a tecla Enter do mobile. Usamos div. -->
+      <div [formGroup]="switchForm" class="wizard-form-body">
         
         <!-- Passo 1: Nome -->
         <div class="step-content animate-in" *ngIf="currentStep === 1">
           <h2>Como vamos chamar essa opção?</h2>
           <p class="step-desc">Dê um nome para identificar fácil depois.</p>
           <div class="form-group">
-            <input type="text" formControlName="name" placeholder="Ex: OLED Novo - Loja X" autofocus>
+            <input type="text" formControlName="name" placeholder="Ex: OLED Novo - Loja X" autofocus (keydown.enter)="advanceIfValid('name')">
           </div>
           <button type="button" class="btn-primary" [disabled]="switchForm.get('name')?.invalid" (click)="nextStep()">Avançar</button>
         </div>
@@ -129,7 +130,7 @@ import { v4 as uuidv4 } from 'uuid';
           <h2>Tem garantia?</h2>
           <p class="step-desc">Informe em dias (ex: 90 para 3 meses, 365 para 1 ano). Se não tiver, deixe em branco.</p>
           <div class="form-group">
-            <input type="number" inputmode="numeric" formControlName="warrantyDays" placeholder="0">
+            <input type="number" inputmode="numeric" formControlName="warrantyDays" placeholder="0" (keydown.enter)="nextStep()">
           </div>
           <button type="button" class="btn-primary" (click)="nextStep()">Avançar</button>
         </div>
@@ -139,7 +140,7 @@ import { v4 as uuidv4 } from 'uuid';
           <h2>Preço à Vista</h2>
           <p class="step-desc">Qual o valor total para pagamento imediato? (Em R$)</p>
           <div class="form-group">
-            <input type="number" inputmode="decimal" formControlName="cashPrice" placeholder="2000" (input)="calculateDiscount()">
+            <input type="number" inputmode="decimal" formControlName="cashPrice" placeholder="2000" (input)="calculateDiscount()" (keydown.enter)="nextStep()">
           </div>
           <button type="button" class="btn-primary" (click)="nextStep()">Avançar</button>
         </div>
@@ -151,15 +152,15 @@ import { v4 as uuidv4 } from 'uuid';
           <div class="finance-group">
             <div class="form-group">
               <label>Quantidade de parcelas</label>
-              <input type="number" inputmode="numeric" formControlName="qtyInstallmentsWithInterest" placeholder="12">
+              <input type="number" inputmode="numeric" formControlName="qtyInstallmentsWithInterest" placeholder="12" (keydown.enter)="nextStep()">
             </div>
             <div class="form-group">
               <label>Valor da Parcela (R$)</label>
-              <input type="number" inputmode="decimal" formControlName="installmentValueWithInterest" placeholder="183.33">
+              <input type="number" inputmode="decimal" formControlName="installmentValueWithInterest" placeholder="183.33" (keydown.enter)="nextStep()">
             </div>
             <div class="form-group">
               <label>Total Final (R$)</label>
-              <input type="number" inputmode="decimal" formControlName="installmentWithInterestPrice" placeholder="2200">
+              <input type="number" inputmode="decimal" formControlName="installmentWithInterestPrice" placeholder="2200" (keydown.enter)="nextStep()">
             </div>
           </div>
           <button type="button" class="btn-primary" (click)="nextStep()">Avançar</button>
@@ -172,15 +173,15 @@ import { v4 as uuidv4 } from 'uuid';
           <div class="finance-group">
             <div class="form-group">
               <label>Quantidade de parcelas</label>
-              <input type="number" inputmode="numeric" formControlName="qtyInstallmentsWithoutInterest" placeholder="10">
+              <input type="number" inputmode="numeric" formControlName="qtyInstallmentsWithoutInterest" placeholder="10" (keydown.enter)="nextStep()">
             </div>
             <div class="form-group">
               <label>Valor da Parcela (R$)</label>
-              <input type="number" inputmode="decimal" formControlName="installmentValueWithoutInterest" placeholder="210.00" (input)="calculateDiscount()">
+              <input type="number" inputmode="decimal" formControlName="installmentValueWithoutInterest" placeholder="210.00" (input)="calculateDiscount()" (keydown.enter)="nextStep()">
             </div>
             <div class="form-group">
               <label>Total Final (R$)</label>
-              <input type="number" inputmode="decimal" formControlName="installmentWithoutInterestPrice" placeholder="2100" (input)="calculateDiscount()">
+              <input type="number" inputmode="decimal" formControlName="installmentWithoutInterestPrice" placeholder="2100" (input)="calculateDiscount()" (keydown.enter)="nextStep()">
             </div>
           </div>
           
@@ -208,10 +209,10 @@ import { v4 as uuidv4 } from 'uuid';
           </div>
         </div>
 
-      </form>
+      </div>
     </div>
 
-    <!-- Store Modal (Igual ao anterior, apenas com CSS ajustado para mobile se necessário) -->
+    <!-- Store Modal -->
     <div class="modal-overlay" *ngIf="showStoreModal">
       <div class="modal-content glass-panel animate-in">
         <h3>Cadastrar Nova Loja</h3>
@@ -251,10 +252,24 @@ import { v4 as uuidv4 } from 'uuid';
   styles: [`
     .wizard-container {
       padding: 24px;
-      margin-bottom: 24px;
-      min-height: 400px;
       display: flex;
       flex-direction: column;
+      
+      /* Make it Full Screen on Mobile */
+      @media (max-width: 768px) {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2000;
+        background: #0f172a; /* Solid dark background to hide body */
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        padding: 16px 16px 32px 16px;
+        overflow-y: auto;
+      }
     }
 
     .wizard-header {
@@ -262,6 +277,7 @@ import { v4 as uuidv4 } from 'uuid';
       align-items: center;
       gap: 16px;
       margin-bottom: 32px;
+      flex-shrink: 0;
       
       .btn-icon {
         background: transparent;
@@ -302,11 +318,18 @@ import { v4 as uuidv4 } from 'uuid';
         text-align: right;
       }
     }
+    
+    .wizard-form-body {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
 
     .step-content {
       flex: 1;
       display: flex;
       flex-direction: column;
+      padding-bottom: 16px;
       
       h2 {
         color: var(--primary-color);
@@ -465,7 +488,7 @@ import { v4 as uuidv4 } from 'uuid';
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 3000;
       padding: 16px;
       box-sizing: border-box;
     }
@@ -513,10 +536,10 @@ export class FormComponent implements OnInit {
   constructor(private fb: FormBuilder, private storageService: StorageService) {
     this.switchForm = this.fb.group({
       name: ['', Validators.required],
-      model: ['OLED', Validators.required],
-      condition: ['NOVO', Validators.required],
-      isUnlocked: [true, Validators.required],
-      storageGb: [128, Validators.required],
+      model: [null, Validators.required], // Starts empty!
+      condition: [null, Validators.required],
+      isUnlocked: [null, Validators.required],
+      storageGb: [null, Validators.required],
       store: ['', Validators.required],
       cashPrice: [''],
       
@@ -528,7 +551,7 @@ export class FormComponent implements OnInit {
       installmentValueWithoutInterest: [''],
       installmentWithoutInterestPrice: [''],
       
-      paymentMethod: ['PIX'],
+      paymentMethod: [null, Validators.required],
       warrantyDays: ['']
     });
 
@@ -559,6 +582,12 @@ export class FormComponent implements OnInit {
       this.currentStep++;
     }
   }
+  
+  advanceIfValid(controlName: string) {
+    if (this.switchForm.get(controlName)?.valid) {
+      this.nextStep();
+    }
+  }
 
   goBack() {
     if (this.currentStep > 1) {
@@ -575,14 +604,13 @@ export class FormComponent implements OnInit {
   selectCard(controlName: string, value: any, isFinalStep = false) {
     this.switchForm.get(controlName)?.setValue(value);
     
-    // Automatically advance on card click
     setTimeout(() => {
       if (isFinalStep) {
         this.onSubmit();
       } else {
         this.nextStep();
       }
-    }, 150); // slight delay for visual feedback
+    }, 150);
   }
 
   get showInstallmentWarning(): boolean {
@@ -640,7 +668,7 @@ export class FormComponent implements OnInit {
       };
       this.storageService.saveOption(newOption);
       this.switchForm.reset({
-        model: 'OLED', condition: 'NOVO', isUnlocked: true, storageGb: 128, store: '', paymentMethod: 'PIX', warrantyDays: ''
+        model: null, condition: null, isUnlocked: null, storageGb: null, store: '', paymentMethod: null, warrantyDays: ''
       });
       this.currentStep = 1;
       this.discountPercentage = null;

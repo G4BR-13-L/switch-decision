@@ -19,6 +19,7 @@ interface GradedOption extends SwitchOption {
     price: number;
   };
   globalScore: number;
+  expanded?: boolean; // For mobile accordian
 }
 
 @Component({
@@ -28,25 +29,88 @@ interface GradedOption extends SwitchOption {
   template: `
     <div class="glass-panel matrix-container">
       <div class="header-actions">
-        <h2>Matriz de Decisão</h2>
-        <p class="subtitle">A pontuação global é calculada multiplicando a nota atribuída automaticamente pelo peso que você definir abaixo.</p>
+        <h2>Ranking e Matriz</h2>
+        <p class="subtitle">Ajuste os pesos (1 a 10) usando os controles abaixo.</p>
       </div>
 
-      <div class="table-responsive">
+      <!-- DESKTOP VIEW (TABLE) -->
+      <div class="desktop-view table-responsive">
         <table>
           <thead>
             <tr class="weights-row">
-              <th>Pesos (1 a 10)</th>
-              <th><input type="number" [(ngModel)]="weights.model" min="1" max="10" (change)="recalculate()" title="Peso para Modelo"></th>
-              <th><input type="number" [(ngModel)]="weights.condition" min="1" max="10" (change)="recalculate()" title="Peso para Condição"></th>
-              <th><input type="number" [(ngModel)]="weights.unlock" min="1" max="10" (change)="recalculate()" title="Peso para Desbloqueio"></th>
-              <th><input type="number" [(ngModel)]="weights.storage" min="1" max="10" (change)="recalculate()" title="Peso para Armazenamento"></th>
-              <th><input type="number" [(ngModel)]="weights.store" min="1" max="10" (change)="recalculate()" title="Peso para Loja"></th>
-              <th><input type="number" [(ngModel)]="weights.warranty" min="1" max="10" (change)="recalculate()" title="Peso para Garantia"></th>
-              <th><input type="number" [(ngModel)]="weights.cashPayment" min="1" max="10" (change)="recalculate()" title="Peso para Preço à Vista"></th>
-              <th><input type="number" [(ngModel)]="weights.installmentWithInterest" min="1" max="10" (change)="recalculate()" title="Peso para Parcela com Juros"></th>
-              <th><input type="number" [(ngModel)]="weights.installmentWithoutInterest" min="1" max="10" (change)="recalculate()" title="Peso para Parcela sem Juros"></th>
-              <th><input type="number" [(ngModel)]="weights.price" min="1" max="10" (change)="recalculate()" title="Peso Geral para Preço"></th>
+              <th>Pesos:</th>
+              
+              <th>
+                <div class="stepper" title="Peso Modelo">
+                  <button (click)="adjustWeight('model', -1)">-</button>
+                  <span>{{ weights.model }}</span>
+                  <button (click)="adjustWeight('model', 1)">+</button>
+                </div>
+              </th>
+              <th>
+                <div class="stepper" title="Peso Condição">
+                  <button (click)="adjustWeight('condition', -1)">-</button>
+                  <span>{{ weights.condition }}</span>
+                  <button (click)="adjustWeight('condition', 1)">+</button>
+                </div>
+              </th>
+              <th>
+                <div class="stepper" title="Peso Desbloqueio">
+                  <button (click)="adjustWeight('unlock', -1)">-</button>
+                  <span>{{ weights.unlock }}</span>
+                  <button (click)="adjustWeight('unlock', 1)">+</button>
+                </div>
+              </th>
+              <th>
+                <div class="stepper" title="Peso Armazenamento">
+                  <button (click)="adjustWeight('storage', -1)">-</button>
+                  <span>{{ weights.storage }}</span>
+                  <button (click)="adjustWeight('storage', 1)">+</button>
+                </div>
+              </th>
+              <th>
+                <div class="stepper" title="Peso Loja">
+                  <button (click)="adjustWeight('store', -1)">-</button>
+                  <span>{{ weights.store }}</span>
+                  <button (click)="adjustWeight('store', 1)">+</button>
+                </div>
+              </th>
+              <th>
+                <div class="stepper" title="Peso Garantia">
+                  <button (click)="adjustWeight('warranty', -1)">-</button>
+                  <span>{{ weights.warranty }}</span>
+                  <button (click)="adjustWeight('warranty', 1)">+</button>
+                </div>
+              </th>
+              <th>
+                <div class="stepper" title="Peso Pgto à Vista">
+                  <button (click)="adjustWeight('cashPayment', -1)">-</button>
+                  <span>{{ weights.cashPayment }}</span>
+                  <button (click)="adjustWeight('cashPayment', 1)">+</button>
+                </div>
+              </th>
+              <th>
+                <div class="stepper" title="Peso Parc. c/ Juros">
+                  <button (click)="adjustWeight('installmentWithInterest', -1)">-</button>
+                  <span>{{ weights.installmentWithInterest }}</span>
+                  <button (click)="adjustWeight('installmentWithInterest', 1)">+</button>
+                </div>
+              </th>
+              <th>
+                <div class="stepper" title="Peso Parc. s/ Juros">
+                  <button (click)="adjustWeight('installmentWithoutInterest', -1)">-</button>
+                  <span>{{ weights.installmentWithoutInterest }}</span>
+                  <button (click)="adjustWeight('installmentWithoutInterest', 1)">+</button>
+                </div>
+              </th>
+              <th>
+                <div class="stepper" title="Peso Preço Geral">
+                  <button (click)="adjustWeight('price', -1)">-</button>
+                  <span>{{ weights.price }}</span>
+                  <button (click)="adjustWeight('price', 1)">+</button>
+                </div>
+              </th>
+              
               <th>-</th>
               <th>-</th>
             </tr>
@@ -54,15 +118,15 @@ interface GradedOption extends SwitchOption {
               <th>Opção</th>
               <th>Modelo</th>
               <th>Condição</th>
-              <th>Desbloqueio</th>
+              <th>Desbloq.</th>
               <th>Armaz.</th>
               <th>Loja</th>
               <th>Garantia</th>
-              <th>Pag. à vista</th>
-              <th>Parc. c/ juros</th>
-              <th>Parc. s/ juros</th>
-              <th>Preço Geral</th>
-              <th>Pontuação Final</th>
+              <th>Pg. vista</th>
+              <th>Parc. c/ j</th>
+              <th>Parc. s/ j</th>
+              <th>Preço Ger.</th>
+              <th>Placar Final</th>
               <th>Ação</th>
             </tr>
           </thead>
@@ -70,7 +134,7 @@ interface GradedOption extends SwitchOption {
             <tr *ngFor="let opt of gradedOptions; let i = index" [class.top-choice]="i === 0 && gradedOptions.length > 1">
               <td class="option-name">
                 {{ opt.name }}
-                <span class="rank-badge" *ngIf="i === 0 && gradedOptions.length > 1">🏆 #1 Recomendado</span>
+                <span class="rank-badge" *ngIf="i === 0 && gradedOptions.length > 1">🏆 #1</span>
                 <div class="details">
                   {{ opt.model }} • {{ opt.condition }} • {{ opt.storageGb }}GB • {{ opt.isUnlocked ? 'Desbloq.' : 'Bloq.' }}
                   <br>Loja: {{ getStoreName(opt.store) }} • Pgto: {{ opt.paymentMethod }} • Gar: {{ opt.warrantyDays ? opt.warrantyDays + ' dias' : 'S/G' }}
@@ -94,10 +158,75 @@ interface GradedOption extends SwitchOption {
               </td>
             </tr>
             <tr *ngIf="gradedOptions.length === 0">
-              <td colspan="13" class="empty-state">Nenhuma opção adicionada ainda. Use o formulário acima.</td>
+              <td colspan="13" class="empty-state">Nenhuma opção cadastrada. Adicione uma pelo wizard.</td>
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- MOBILE VIEW (LIST OF CARDS) -->
+      <div class="mobile-view">
+        
+        <div class="mobile-weights-card">
+          <h3>Ajustar Pesos</h3>
+          <div class="mobile-steppers-grid">
+            <div class="stepper-item"><span>Mod</span> <div class="stepper"><button (click)="adjustWeight('model', -1)">-</button><span>{{ weights.model }}</span><button (click)="adjustWeight('model', 1)">+</button></div></div>
+            <div class="stepper-item"><span>Cond</span> <div class="stepper"><button (click)="adjustWeight('condition', -1)">-</button><span>{{ weights.condition }}</span><button (click)="adjustWeight('condition', 1)">+</button></div></div>
+            <div class="stepper-item"><span>Desbl</span> <div class="stepper"><button (click)="adjustWeight('unlock', -1)">-</button><span>{{ weights.unlock }}</span><button (click)="adjustWeight('unlock', 1)">+</button></div></div>
+            <div class="stepper-item"><span>Armaz</span> <div class="stepper"><button (click)="adjustWeight('storage', -1)">-</button><span>{{ weights.storage }}</span><button (click)="adjustWeight('storage', 1)">+</button></div></div>
+            <div class="stepper-item"><span>Loja</span> <div class="stepper"><button (click)="adjustWeight('store', -1)">-</button><span>{{ weights.store }}</span><button (click)="adjustWeight('store', 1)">+</button></div></div>
+            <div class="stepper-item"><span>Gar</span> <div class="stepper"><button (click)="adjustWeight('warranty', -1)">-</button><span>{{ weights.warranty }}</span><button (click)="adjustWeight('warranty', 1)">+</button></div></div>
+            <div class="stepper-item"><span>Vista</span> <div class="stepper"><button (click)="adjustWeight('cashPayment', -1)">-</button><span>{{ weights.cashPayment }}</span><button (click)="adjustWeight('cashPayment', 1)">+</button></div></div>
+            <div class="stepper-item"><span>C/Jur</span> <div class="stepper"><button (click)="adjustWeight('installmentWithInterest', -1)">-</button><span>{{ weights.installmentWithInterest }}</span><button (click)="adjustWeight('installmentWithInterest', 1)">+</button></div></div>
+            <div class="stepper-item"><span>S/Jur</span> <div class="stepper"><button (click)="adjustWeight('installmentWithoutInterest', -1)">-</button><span>{{ weights.installmentWithoutInterest }}</span><button (click)="adjustWeight('installmentWithoutInterest', 1)">+</button></div></div>
+            <div class="stepper-item"><span>Pr.Ger</span> <div class="stepper"><button (click)="adjustWeight('price', -1)">-</button><span>{{ weights.price }}</span><button (click)="adjustWeight('price', 1)">+</button></div></div>
+          </div>
+        </div>
+
+        <div *ngIf="gradedOptions.length === 0" class="empty-state">
+          Nenhuma opção cadastrada ainda.
+        </div>
+
+        <div class="ranking-card" *ngFor="let opt of gradedOptions; let i = index" [class.expanded]="opt.expanded" [class.top-choice]="i === 0 && gradedOptions.length > 1" (click)="opt.expanded = !opt.expanded">
+          
+          <div class="card-header">
+            <div class="card-rank">
+              <span class="medal" *ngIf="i === 0 && gradedOptions.length > 1">🏆</span>
+              <span class="num" *ngIf="i > 0 || gradedOptions.length <= 1">#{{ i + 1 }}</span>
+            </div>
+            <div class="card-title">
+              <h3>{{ opt.name }}</h3>
+              <p *ngIf="!opt.expanded" class="short-desc">
+                {{ opt.cashPrice ? (opt.cashPrice | currency:'BRL') : (opt.installmentWithoutInterestPrice ? (opt.installmentWithoutInterestPrice | currency:'BRL') : 'Preço Indisponível') }}
+              </p>
+            </div>
+            <div class="card-score">
+              <span class="score-val">{{ opt.globalScore | number:'1.0-0' }}</span>
+              <span class="score-label">pts</span>
+            </div>
+          </div>
+
+          <div class="card-details" *ngIf="opt.expanded">
+            <hr>
+            <div class="detail-grid">
+              <div class="detail-item"><span>Modelo:</span> <strong>{{ opt.model }}</strong></div>
+              <div class="detail-item"><span>Condição:</span> <strong>{{ opt.condition }}</strong></div>
+              <div class="detail-item"><span>Desbloqueio:</span> <strong>{{ opt.isUnlocked ? 'Sim' : 'Não' }}</strong></div>
+              <div class="detail-item"><span>Armaz.:</span> <strong>{{ opt.storageGb }}GB</strong></div>
+              <div class="detail-item"><span>Loja:</span> <strong>{{ getStoreName(opt.store) }}</strong></div>
+              <div class="detail-item"><span>Garantia:</span> <strong>{{ opt.warrantyDays ? opt.warrantyDays + ' d' : 'S/G' }}</strong></div>
+              <div class="detail-item"><span>À vista:</span> <strong>{{ opt.cashPrice ? (opt.cashPrice | currency:'BRL') : '-' }}</strong></div>
+              <div class="detail-item"><span>Parc. c/ Juros:</span> <strong>{{ opt.installmentWithInterestPrice ? (opt.installmentWithInterestPrice | currency:'BRL') : '-' }}</strong></div>
+              <div class="detail-item"><span>Parc. s/ Juros:</span> <strong>{{ opt.installmentWithoutInterestPrice ? (opt.installmentWithoutInterestPrice | currency:'BRL') : '-' }}</strong></div>
+              <div class="detail-item"><span>Pgto Princ.:</span> <strong>{{ opt.paymentMethod }}</strong></div>
+            </div>
+            
+            <div class="card-actions">
+               <button class="btn-delete" (click)="onDelete(opt.id); $event.stopPropagation()">Excluir Opção</button>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   `,
@@ -105,17 +234,61 @@ interface GradedOption extends SwitchOption {
     .matrix-container {
       padding: 24px;
       overflow: hidden;
+      
+      @media (max-width: 900px) {
+        padding: 16px;
+      }
     }
 
     .header-actions {
       margin-bottom: 24px;
       
-      h2 { color: var(--primary-color); }
+      h2 { color: var(--primary-color); font-size: 1.5rem; }
       .subtitle { color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px; }
     }
 
-    .table-responsive {
+    /* STEPPER CONTROLS */
+    .stepper {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      
+      button {
+        background: transparent;
+        border: none;
+        color: white;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        cursor: pointer;
+        
+        &:hover { background: rgba(230, 0, 18, 0.4); }
+        &:active { background: rgba(230, 0, 18, 0.6); }
+      }
+      
+      span {
+        width: 24px;
+        text-align: center;
+        font-size: 0.9rem;
+        color: var(--accent-color);
+        font-weight: bold;
+      }
+    }
+
+    /* DESKTOP TABLE VIEW */
+    .desktop-view {
+      display: block;
       overflow-x: auto;
+    }
+    
+    .mobile-view {
+      display: none;
     }
 
     table {
@@ -136,25 +309,12 @@ interface GradedOption extends SwitchOption {
       font-weight: 600;
       font-size: 0.9rem;
       white-space: nowrap;
+      vertical-align: middle;
     }
 
     .weights-row th {
       background: rgba(230, 0, 18, 0.1);
-      
-      input {
-        width: 46px;
-        background: transparent;
-        border: 1px solid var(--glass-border);
-        color: white;
-        text-align: center;
-        border-radius: 4px;
-        padding: 4px;
-        
-        &:focus {
-          outline: none;
-          border-color: var(--primary-color);
-        }
-      }
+      padding: 8px;
     }
 
     td {
@@ -195,15 +355,9 @@ interface GradedOption extends SwitchOption {
       vertical-align: middle;
     }
 
-    tr.top-choice td {
-      background: rgba(255, 215, 0, 0.05);
-    }
-    
-    tbody tr:hover td {
-      background: rgba(255, 255, 255, 0.05);
-    }
+    tr.top-choice td { background: rgba(255, 215, 0, 0.05); }
+    tbody tr:hover td { background: rgba(255, 255, 255, 0.05); }
 
-    /* Grade Colors */
     .grade-high { color: var(--success-color); font-weight: bold; }
     .grade-med { color: var(--warning-color); }
     .grade-low { color: var(--danger-color); }
@@ -218,16 +372,124 @@ interface GradedOption extends SwitchOption {
       font-size: 0.8rem;
       transition: all 0.2s ease;
       
-      &:hover {
-        background: var(--danger-color);
-        color: white;
-      }
+      &:hover { background: var(--danger-color); color: white; }
     }
 
     .empty-state {
       padding: 40px !important;
       color: var(--text-secondary);
       font-style: italic;
+      text-align: center;
+    }
+
+    /* MOBILE VIEW (< 900px) */
+    @media (max-width: 900px) {
+      .desktop-view { display: none; }
+      .mobile-view { display: flex; flex-direction: column; gap: 16px; padding-bottom: 80px; }
+
+      .mobile-weights-card {
+        background: rgba(230, 0, 18, 0.05);
+        border: 1px solid rgba(230, 0, 18, 0.2);
+        border-radius: 12px;
+        padding: 16px;
+        
+        h3 { color: var(--accent-color); font-size: 1rem; margin-bottom: 12px; }
+      }
+
+      .mobile-steppers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+        
+        .stepper-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+        }
+      }
+
+      .ranking-card {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: 0.2s ease;
+        
+        &.top-choice {
+          border-color: #ffd700;
+          box-shadow: 0 4px 12px rgba(255, 215, 0, 0.1);
+        }
+
+        .card-header {
+          display: flex;
+          align-items: center;
+          padding: 16px;
+          gap: 16px;
+          
+          .card-rank {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-secondary);
+            
+            .medal { font-size: 1.8rem; }
+            .num { opacity: 0.5; }
+          }
+          
+          .card-title {
+            flex: 1;
+            h3 { margin: 0; font-size: 1.1rem; color: white; }
+            .short-desc { margin: 4px 0 0; font-size: 0.85rem; color: var(--accent-color); }
+          }
+          
+          .card-score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(230, 0, 18, 0.15);
+            border-radius: 8px;
+            padding: 8px 12px;
+            
+            .score-val { font-size: 1.4rem; font-weight: bold; color: var(--primary-color); line-height: 1; }
+            .score-label { font-size: 0.65rem; color: var(--primary-color); text-transform: uppercase; margin-top: 2px; }
+          }
+        }
+
+        .card-details {
+          padding: 0 16px 16px;
+          
+          hr { border: none; border-top: 1px solid var(--glass-border); margin: 0 0 16px; }
+          
+          .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+            
+            .detail-item {
+              display: flex;
+              flex-direction: column;
+              font-size: 0.8rem;
+              
+              span { color: var(--text-secondary); margin-bottom: 2px; }
+              strong { color: white; font-size: 0.9rem; }
+            }
+          }
+
+          .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            
+            .btn-delete {
+              padding: 10px 16px;
+              width: 100%;
+            }
+          }
+        }
+      }
     }
   `]
 })
@@ -253,9 +515,17 @@ export class MatrixComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['options']) {
-      this.stores = this.storageService.getStores(); // reload stores just in case
+      this.stores = this.storageService.getStores();
       this.recalculate();
     }
+  }
+
+  adjustWeight(key: keyof typeof this.weights, delta: number) {
+    let newVal = this.weights[key] + delta;
+    if (newVal > 10) newVal = 10;
+    if (newVal < 1) newVal = 1;
+    this.weights[key] = newVal;
+    this.recalculate();
   }
 
   recalculate() {
@@ -264,7 +534,6 @@ export class MatrixComponent implements OnInit, OnChanges {
       return;
     }
 
-    // Prepare min/max for relative grading of prices
     const cashPrices = this.options.map(o => Number(o.cashPrice)).filter(p => !isNaN(p) && p > 0);
     const intPrices = this.options.map(o => Number(o.installmentWithInterestPrice)).filter(p => !isNaN(p) && p > 0);
     const noIntPrices = this.options.map(o => Number(o.installmentWithoutInterestPrice)).filter(p => !isNaN(p) && p > 0);
@@ -282,9 +551,13 @@ export class MatrixComponent implements OnInit, OnChanges {
     const minWarr = warranties.length ? Math.min(...warranties) : 0;
     const maxWarr = warranties.length ? Math.max(...warranties) : 0;
 
-    // Calculate grades for each option
+    // Preserve expanded state
+    const expandedStates = new Map<string, boolean>();
+    this.gradedOptions.forEach(o => {
+      if (o.expanded) expandedStates.set(o.id, true);
+    });
+
     this.gradedOptions = this.options.map(opt => {
-      // Discrete Grades
       let modelGrade = 5;
       if (opt.model === 'OLED') modelGrade = 10;
       else if (opt.model === 'V2') modelGrade = 8;
@@ -311,20 +584,18 @@ export class MatrixComponent implements OnInit, OnChanges {
         storeGrade = storeObj.isReliable ? 10 : 2;
       }
 
-      // Relative Price Grades (Lower is better)
       const calcRelativePriceGrade = (val: any, min: number, max: number) => {
         const p = Number(val);
-        if (isNaN(p) || p <= 0) return 0; // Invalid or missing
-        if (max === min) return 10; // Only one price, gets 10
-        return 10 - ((p - min) / (max - min)) * 9; // Range 1 to 10
+        if (isNaN(p) || p <= 0) return 0;
+        if (max === min) return 10;
+        return 10 - ((p - min) / (max - min)) * 9;
       };
 
-      // Relative Warranty Grade (Higher is better)
       const calcRelativeWarrantyGrade = (val: any, min: number, max: number) => {
         const p = Number(val);
-        if (isNaN(p) || p < 0) return 0; // Invalid or missing
-        if (max === min) return 10; // Only one warranty length, gets 10
-        return 1 + ((p - min) / (max - min)) * 9; // Range 1 to 10
+        if (isNaN(p) || p < 0) return 0;
+        if (max === min) return 10;
+        return 1 + ((p - min) / (max - min)) * 9;
       };
 
       const cashGrade = calcRelativePriceGrade(opt.cashPrice, minCash, maxCash);
@@ -333,7 +604,6 @@ export class MatrixComponent implements OnInit, OnChanges {
       
       const warrantyGrade = calcRelativeWarrantyGrade(opt.warrantyDays, minWarr, maxWarr);
 
-      // General Price Grade = average of available price grades
       let sumP = 0, countP = 0;
       if (cashGrade > 0) { sumP += cashGrade; countP++; }
       if (intGrade > 0) { sumP += intGrade; countP++; }
@@ -353,7 +623,6 @@ export class MatrixComponent implements OnInit, OnChanges {
         price: genPriceGrade
       };
 
-      // Calculate Global Score
       const score = (
         (dynamicGrades.model * (this.weights.model || 0)) +
         (dynamicGrades.condition * (this.weights.condition || 0)) +
@@ -370,11 +639,11 @@ export class MatrixComponent implements OnInit, OnChanges {
       return {
         ...opt,
         dynamicGrades,
-        globalScore: score
+        globalScore: score,
+        expanded: expandedStates.get(opt.id) || false
       };
     });
 
-    // Sort by globalScore descending
     this.gradedOptions.sort((a, b) => b.globalScore - a.globalScore);
   }
 
@@ -386,7 +655,7 @@ export class MatrixComponent implements OnInit, OnChanges {
     if (grade >= 8) return 'grade-high';
     if (grade >= 5) return 'grade-med';
     if (grade > 0) return 'grade-low';
-    return ''; // For 0 (N/A)
+    return '';
   }
 
   getStoreName(storeId: string): string {
