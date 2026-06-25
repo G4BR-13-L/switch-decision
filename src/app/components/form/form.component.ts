@@ -28,7 +28,6 @@ import { v4 as uuidv4 } from 'uuid';
       </div>
 
       <!-- CORPO DO WIZARD -->
-      <!-- Removemos form tag para evitar submits implicitos com a tecla Enter do mobile. Usamos div. -->
       <div [formGroup]="switchForm" class="wizard-form-body">
         
         <!-- Passo 1: Nome -->
@@ -36,7 +35,7 @@ import { v4 as uuidv4 } from 'uuid';
           <h2>Como vamos chamar essa opção?</h2>
           <p class="step-desc">Dê um nome para identificar fácil depois.</p>
           <div class="form-group">
-            <input type="text" formControlName="name" placeholder="Ex: OLED Novo - Loja X" autofocus (keydown.enter)="advanceIfValid('name')">
+            <input type="text" formControlName="name" placeholder="Ex: OLED Novo - Loja X" autofocus (keydown.enter)="$event.preventDefault()">
           </div>
           <button type="button" class="btn-primary" [disabled]="switchForm.get('name')?.invalid" (click)="nextStep()">Avançar</button>
         </div>
@@ -62,6 +61,7 @@ import { v4 as uuidv4 } from 'uuid';
               <p>Apenas portátil</p>
             </div>
           </div>
+          <button type="button" class="btn-primary" [disabled]="switchForm.get('model')?.invalid" (click)="nextStep()">Avançar</button>
         </div>
 
         <!-- Passo 3: Condição -->
@@ -81,6 +81,7 @@ import { v4 as uuidv4 } from 'uuid';
               <p>Com marcas de uso</p>
             </div>
           </div>
+          <button type="button" class="btn-primary" [disabled]="switchForm.get('condition')?.invalid" (click)="nextStep()">Avançar</button>
         </div>
 
         <!-- Passo 4: Desbloqueado -->
@@ -96,6 +97,7 @@ import { v4 as uuidv4 } from 'uuid';
               <p>Original / Bloqueado</p>
             </div>
           </div>
+          <button type="button" class="btn-primary" [disabled]="switchForm.get('isUnlocked')?.invalid" (click)="nextStep()">Avançar</button>
         </div>
 
         <!-- Passo 5: Armazenamento -->
@@ -108,6 +110,7 @@ import { v4 as uuidv4 } from 'uuid';
             <div class="wizard-card" [class.active]="switchForm.get('storageGb')?.value === 64" (click)="selectCard('storageGb', 64)"><h3>64 GB</h3></div>
             <div class="wizard-card" [class.active]="switchForm.get('storageGb')?.value === 32" (click)="selectCard('storageGb', 32)"><h3>32 GB</h3></div>
           </div>
+          <button type="button" class="btn-primary" [disabled]="switchForm.get('storageGb')?.invalid" (click)="nextStep()">Avançar</button>
         </div>
 
         <!-- Passo 6: Loja -->
@@ -123,16 +126,27 @@ import { v4 as uuidv4 } from 'uuid';
               <p>Cadastrar</p>
             </div>
           </div>
+          <button type="button" class="btn-primary" [disabled]="switchForm.get('store')?.invalid" (click)="nextStep()">Avançar</button>
         </div>
 
         <!-- Passo 7: Garantia -->
         <div class="step-content animate-in" *ngIf="currentStep === 7">
           <h2>Tem garantia?</h2>
-          <p class="step-desc">Informe em dias (ex: 90 para 3 meses, 365 para 1 ano). Se não tiver, deixe em branco.</p>
-          <div class="form-group">
-            <input type="number" inputmode="numeric" formControlName="warrantyDays" placeholder="0" (keydown.enter)="nextStep()">
+          <p class="step-desc">Selecione uma opção ou digite em dias personalizados.</p>
+          
+          <div class="chips-container">
+            <div class="chip" [class.active]="switchForm.get('warrantyDays')?.value === 0" (click)="selectCard('warrantyDays', 0)">Sem Garantia</div>
+            <div class="chip" [class.active]="switchForm.get('warrantyDays')?.value === 30" (click)="selectCard('warrantyDays', 30)">30 Dias</div>
+            <div class="chip" [class.active]="switchForm.get('warrantyDays')?.value === 90" (click)="selectCard('warrantyDays', 90)">90 Dias</div>
+            <div class="chip" [class.active]="switchForm.get('warrantyDays')?.value === 180" (click)="selectCard('warrantyDays', 180)">6 Meses</div>
+            <div class="chip" [class.active]="switchForm.get('warrantyDays')?.value === 365" (click)="selectCard('warrantyDays', 365)">1 Ano</div>
           </div>
-          <button type="button" class="btn-primary" (click)="nextStep()">Avançar</button>
+
+          <div class="form-group">
+            <label>Dias Personalizados:</label>
+            <input type="number" inputmode="numeric" formControlName="warrantyDays" placeholder="0" (keydown.enter)="$event.preventDefault()">
+          </div>
+          <button type="button" class="btn-primary" [disabled]="switchForm.get('warrantyDays')?.value === null" (click)="nextStep()">Avançar</button>
         </div>
 
         <!-- Passo 8: Pagamento à Vista -->
@@ -140,7 +154,7 @@ import { v4 as uuidv4 } from 'uuid';
           <h2>Preço à Vista</h2>
           <p class="step-desc">Qual o valor total para pagamento imediato? (Em R$)</p>
           <div class="form-group">
-            <input type="number" inputmode="decimal" formControlName="cashPrice" placeholder="2000" (input)="calculateDiscount()" (keydown.enter)="nextStep()">
+            <input type="number" inputmode="decimal" formControlName="cashPrice" placeholder="2000" (input)="calculateDiscount()" (keydown.enter)="$event.preventDefault()">
           </div>
           <button type="button" class="btn-primary" (click)="nextStep()">Avançar</button>
         </div>
@@ -148,48 +162,67 @@ import { v4 as uuidv4 } from 'uuid';
         <!-- Passo 9: Parcelamento Com Juros -->
         <div class="step-content animate-in" *ngIf="currentStep === 9">
           <h2>Parcelamento com Juros</h2>
-          <p class="step-desc">Preencha se houver essa opção. Caso contrário, apenas avance.</p>
-          <div class="finance-group">
+          
+          <div class="toggle-group">
+            <label>Essa opção possui parcelamento COM juros?</label>
+            <div class="cards-grid toggle-cards">
+              <div class="wizard-card small-card" [class.active]="switchForm.get('hasInstallmentWithInterest')?.value === true" (click)="selectCard('hasInstallmentWithInterest', true)">Sim</div>
+              <div class="wizard-card small-card" [class.active]="switchForm.get('hasInstallmentWithInterest')?.value === false" (click)="selectCard('hasInstallmentWithInterest', false)">Não</div>
+            </div>
+          </div>
+
+          <div class="finance-group animate-in" *ngIf="switchForm.get('hasInstallmentWithInterest')?.value === true">
+            <p class="step-desc">Preencha os valores cobrados.</p>
             <div class="form-group">
               <label>Quantidade de parcelas</label>
-              <input type="number" inputmode="numeric" formControlName="qtyInstallmentsWithInterest" placeholder="12" (keydown.enter)="nextStep()">
+              <input type="number" inputmode="numeric" formControlName="qtyInstallmentsWithInterest" placeholder="12" (keydown.enter)="$event.preventDefault()">
             </div>
             <div class="form-group">
               <label>Valor da Parcela (R$)</label>
-              <input type="number" inputmode="decimal" formControlName="installmentValueWithInterest" placeholder="183.33" (keydown.enter)="nextStep()">
+              <input type="number" inputmode="decimal" formControlName="installmentValueWithInterest" placeholder="183.33" (keydown.enter)="$event.preventDefault()">
             </div>
             <div class="form-group">
               <label>Total Final (R$)</label>
-              <input type="number" inputmode="decimal" formControlName="installmentWithInterestPrice" placeholder="2200" (keydown.enter)="nextStep()">
+              <input type="number" inputmode="decimal" formControlName="installmentWithInterestPrice" placeholder="2200" (keydown.enter)="$event.preventDefault()">
             </div>
           </div>
-          <button type="button" class="btn-primary" (click)="nextStep()">Avançar</button>
+          
+          <button type="button" class="btn-primary" [disabled]="switchForm.get('hasInstallmentWithInterest')?.value === null" (click)="nextStep()">Avançar</button>
         </div>
 
         <!-- Passo 10: Parcelamento Sem Juros -->
         <div class="step-content animate-in" *ngIf="currentStep === 10">
           <h2>Parcelamento sem Juros</h2>
-          <p class="step-desc">Se a loja dividir sem juros, coloque aqui.</p>
-          <div class="finance-group">
+
+          <div class="toggle-group">
+            <label>Essa opção divide o valor SEM juros?</label>
+            <div class="cards-grid toggle-cards">
+              <div class="wizard-card small-card" [class.active]="switchForm.get('hasInstallmentWithoutInterest')?.value === true" (click)="selectCard('hasInstallmentWithoutInterest', true)">Sim</div>
+              <div class="wizard-card small-card" [class.active]="switchForm.get('hasInstallmentWithoutInterest')?.value === false" (click)="selectCard('hasInstallmentWithoutInterest', false)">Não</div>
+            </div>
+          </div>
+
+          <div class="finance-group animate-in" *ngIf="switchForm.get('hasInstallmentWithoutInterest')?.value === true">
+            <p class="step-desc">Preencha os detalhes do parcelamento.</p>
             <div class="form-group">
               <label>Quantidade de parcelas</label>
-              <input type="number" inputmode="numeric" formControlName="qtyInstallmentsWithoutInterest" placeholder="10" (keydown.enter)="nextStep()">
+              <input type="number" inputmode="numeric" formControlName="qtyInstallmentsWithoutInterest" placeholder="10" (keydown.enter)="$event.preventDefault()">
             </div>
             <div class="form-group">
               <label>Valor da Parcela (R$)</label>
-              <input type="number" inputmode="decimal" formControlName="installmentValueWithoutInterest" placeholder="210.00" (input)="calculateDiscount()" (keydown.enter)="nextStep()">
+              <input type="number" inputmode="decimal" formControlName="installmentValueWithoutInterest" placeholder="210.00" (input)="calculateDiscount()" (keydown.enter)="$event.preventDefault()">
             </div>
             <div class="form-group">
               <label>Total Final (R$)</label>
-              <input type="number" inputmode="decimal" formControlName="installmentWithoutInterestPrice" placeholder="2100" (input)="calculateDiscount()" (keydown.enter)="nextStep()">
+              <input type="number" inputmode="decimal" formControlName="installmentWithoutInterestPrice" placeholder="2100" (input)="calculateDiscount()" (keydown.enter)="$event.preventDefault()">
             </div>
           </div>
           
           <div *ngIf="showInstallmentWarning" class="alert-warning">
-            <strong>Aviso:</strong> A quantidade de parcelas × valor não bate com o total informado. Verifique!
+            <strong>Aviso:</strong> A quantidade de parcelas × valor não bate com o total informado.
           </div>
 
-          <button type="button" class="btn-primary" (click)="nextStep()">Avançar</button>
+          <button type="button" class="btn-primary" [disabled]="switchForm.get('hasInstallmentWithoutInterest')?.value === null" (click)="nextStep()">Avançar</button>
         </div>
 
         <!-- Passo 11: Método Principal de Pgto -->
@@ -197,16 +230,19 @@ import { v4 as uuidv4 } from 'uuid';
           <h2>Como você pretende pagar?</h2>
           <p class="step-desc">Esta opção será usada como sua decisão principal na matriz.</p>
           <div class="cards-grid">
-            <div class="wizard-card" [class.active]="switchForm.get('paymentMethod')?.value === 'PIX'" (click)="selectCard('paymentMethod', 'PIX', true)">
+            <div class="wizard-card" [class.active]="switchForm.get('paymentMethod')?.value === 'PIX'" (click)="selectCard('paymentMethod', 'PIX')">
               <h3>PIX</h3>
             </div>
-            <div class="wizard-card" [class.active]="switchForm.get('paymentMethod')?.value === 'CREDITO'" (click)="selectCard('paymentMethod', 'CREDITO', true)">
+            <div class="wizard-card" [class.active]="switchForm.get('paymentMethod')?.value === 'CREDITO'" (click)="selectCard('paymentMethod', 'CREDITO')">
               <h3>Cartão de Crédito</h3>
             </div>
-            <div class="wizard-card" [class.active]="switchForm.get('paymentMethod')?.value === 'BOLETO'" (click)="selectCard('paymentMethod', 'BOLETO', true)">
+            <div class="wizard-card" [class.active]="switchForm.get('paymentMethod')?.value === 'BOLETO'" (click)="selectCard('paymentMethod', 'BOLETO')">
               <h3>Boleto</h3>
             </div>
           </div>
+          
+          <!-- Finalizar -->
+          <button type="button" class="btn-primary" [disabled]="switchForm.get('paymentMethod')?.invalid" (click)="onSubmit()">Finalizar Cadastro</button>
         </div>
 
       </div>
@@ -255,7 +291,6 @@ import { v4 as uuidv4 } from 'uuid';
       display: flex;
       flex-direction: column;
       
-      /* Make it Full Screen on Mobile */
       @media (max-width: 768px) {
         position: fixed;
         top: 0;
@@ -263,7 +298,7 @@ import { v4 as uuidv4 } from 'uuid';
         right: 0;
         bottom: 0;
         z-index: 2000;
-        background: #0f172a; /* Solid dark background to hide body */
+        background: #0f172a;
         margin: 0;
         border-radius: 0;
         border: none;
@@ -290,10 +325,7 @@ import { v4 as uuidv4 } from 'uuid';
         align-items: center;
         justify-content: center;
         
-        &:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
-        }
+        &:hover { background: rgba(255, 255, 255, 0.1); color: white; }
       }
       
       .progress-bar {
@@ -331,36 +363,28 @@ import { v4 as uuidv4 } from 'uuid';
       flex-direction: column;
       padding-bottom: 16px;
       
-      h2 {
-        color: var(--primary-color);
-        margin-bottom: 8px;
-        font-size: 1.5rem;
-      }
-      
-      .step-desc {
-        color: var(--text-secondary);
-        margin-bottom: 24px;
-        font-size: 0.95rem;
-      }
+      h2 { color: var(--primary-color); margin-bottom: 8px; font-size: 1.5rem; }
+      .step-desc { color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem; }
 
       .btn-primary {
         margin-top: auto;
         padding: 16px;
         font-size: 1.1rem;
         border-radius: 12px;
+        
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          background: rgba(255, 255, 255, 0.1);
+          color: rgba(255,255,255,0.5);
+        }
       }
     }
 
     .form-group {
       margin-bottom: 20px;
       
-      label {
-        display: block;
-        font-size: 0.9rem;
-        margin-bottom: 8px;
-        color: var(--text-secondary);
-      }
-      
+      label { display: block; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary); }
       input, select {
         background: rgba(0, 0, 0, 0.2);
         border: 1px solid var(--glass-border);
@@ -372,10 +396,30 @@ import { v4 as uuidv4 } from 'uuid';
         font-size: 1.1rem;
         box-sizing: border-box;
         
-        &:focus {
-          outline: none;
+        &:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(230, 0, 18, 0.2); }
+      }
+    }
+
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+      
+      .chip {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 10px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: 0.2s ease;
+        
+        &:hover { background: rgba(255, 255, 255, 0.1); }
+        &.active {
+          background: rgba(230, 0, 18, 0.2);
           border-color: var(--primary-color);
-          box-shadow: 0 0 0 2px rgba(230, 0, 18, 0.2);
+          color: white;
         }
       }
     }
@@ -386,9 +430,12 @@ import { v4 as uuidv4 } from 'uuid';
       border-radius: 12px;
       margin-bottom: 20px;
       
-      .form-group:last-child {
-        margin-bottom: 0;
-      }
+      .form-group:last-child { margin-bottom: 0; }
+    }
+    
+    .toggle-group {
+      margin-bottom: 20px;
+      label { display: block; font-size: 1rem; margin-bottom: 12px; color: white; }
     }
 
     .cards-grid {
@@ -397,9 +444,11 @@ import { v4 as uuidv4 } from 'uuid';
       gap: 16px;
       margin-bottom: 24px;
       
-      @media (max-width: 400px) {
-        grid-template-columns: 1fr;
-      }
+      @media (max-width: 400px) { grid-template-columns: 1fr; }
+    }
+    
+    .toggle-cards {
+      grid-template-columns: 1fr 1fr;
     }
 
     .wizard-card {
@@ -415,56 +464,33 @@ import { v4 as uuidv4 } from 'uuid';
       justify-content: center;
       min-height: 100px;
       
-      h3 {
-        margin: 0;
+      h3 { margin: 0; font-size: 1.2rem; color: white; }
+      p { margin: 8px 0 0 0; font-size: 0.8rem; color: var(--text-secondary); }
+
+      &.small-card {
+        min-height: 60px;
         font-size: 1.2rem;
-        color: white;
-      }
-      
-      p {
-        margin: 8px 0 0 0;
-        font-size: 0.8rem;
-        color: var(--text-secondary);
+        font-weight: bold;
       }
 
       &.active {
         background: rgba(230, 0, 18, 0.15);
         border-color: var(--primary-color);
-        
-        h3 {
-          color: var(--primary-color);
-        }
+        h3 { color: var(--primary-color); }
       }
       
-      &:hover:not(.active) {
-        background: rgba(255, 255, 255, 0.05);
-        transform: translateY(-2px);
-      }
+      &:hover:not(.active) { background: rgba(255, 255, 255, 0.05); transform: translateY(-2px); }
     }
 
     .new-store-card {
       border: 2px dashed rgba(255, 255, 255, 0.2);
       background: transparent;
-      
-      &:hover {
-        border-color: var(--accent-color);
-        h3 { color: var(--accent-color); }
-      }
+      &:hover { border-color: var(--accent-color); h3 { color: var(--accent-color); } }
     }
 
-    .badge-reliable {
-      color: var(--success-color) !important;
-      font-weight: bold;
-    }
-
-    .animate-in {
-      animation: slideIn 0.3s ease-out forwards;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(20px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
+    .badge-reliable { color: var(--success-color) !important; font-weight: bold; }
+    .animate-in { animation: slideIn 0.3s ease-out forwards; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
 
     .alert-warning {
       background: rgba(255, 171, 0, 0.15);
@@ -476,7 +502,6 @@ import { v4 as uuidv4 } from 'uuid';
       font-size: 0.9rem;
     }
 
-    /* Modal Styles Mobile-friendly */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -500,20 +525,12 @@ import { v4 as uuidv4 } from 'uuid';
       overflow-y: auto;
       padding: 24px;
       
-      h3 {
-        color: var(--primary-color);
-        margin-bottom: 20px;
-      }
-
+      h3 { color: var(--primary-color); margin-bottom: 20px; }
       .modal-actions {
         display: flex;
         gap: 12px;
         margin-top: 24px;
-        
-        button {
-          margin-top: 0;
-          flex: 1;
-        }
+        button { margin-top: 0; flex: 1; }
       }
     }
   `]
@@ -536,23 +553,25 @@ export class FormComponent implements OnInit {
   constructor(private fb: FormBuilder, private storageService: StorageService) {
     this.switchForm = this.fb.group({
       name: ['', Validators.required],
-      model: [null, Validators.required], // Starts empty!
+      model: [null, Validators.required], 
       condition: [null, Validators.required],
       isUnlocked: [null, Validators.required],
       storageGb: [null, Validators.required],
       store: ['', Validators.required],
       cashPrice: [''],
       
+      hasInstallmentWithInterest: [null, Validators.required],
       qtyInstallmentsWithInterest: [''],
       installmentValueWithInterest: [''],
       installmentWithInterestPrice: [''],
       
+      hasInstallmentWithoutInterest: [null, Validators.required],
       qtyInstallmentsWithoutInterest: [''],
       installmentValueWithoutInterest: [''],
       installmentWithoutInterestPrice: [''],
       
       paymentMethod: [null, Validators.required],
-      warrantyDays: ['']
+      warrantyDays: [null, Validators.required]
     });
 
     this.storeForm = this.fb.group({
@@ -576,16 +595,9 @@ export class FormComponent implements OnInit {
     this.stores = this.storageService.getStores();
   }
 
-  // WIZARD NAVIGATION
   nextStep() {
     if (this.currentStep < this.totalSteps) {
       this.currentStep++;
-    }
-  }
-  
-  advanceIfValid(controlName: string) {
-    if (this.switchForm.get(controlName)?.valid) {
-      this.nextStep();
     }
   }
 
@@ -601,16 +613,9 @@ export class FormComponent implements OnInit {
     this.cancelled.emit();
   }
 
-  selectCard(controlName: string, value: any, isFinalStep = false) {
+  selectCard(controlName: string, value: any) {
     this.switchForm.get(controlName)?.setValue(value);
-    
-    setTimeout(() => {
-      if (isFinalStep) {
-        this.onSubmit();
-      } else {
-        this.nextStep();
-      }
-    }, 150);
+    // REMOVED AUTO ADVANCE HERE
   }
 
   get showInstallmentWarning(): boolean {
@@ -653,7 +658,6 @@ export class FormComponent implements OnInit {
       };
       this.storageService.saveStore(newStore);
       this.loadStores();
-      // Select the new store and automatically proceed
       this.selectCard('store', newStore.id);
       this.closeStoreModal();
     }
@@ -661,14 +665,29 @@ export class FormComponent implements OnInit {
 
   onSubmit() {
     if (this.switchForm.valid) {
+      const val = this.switchForm.value;
+      
+      // Cleanup if installment is False
+      if (!val.hasInstallmentWithInterest) {
+        val.qtyInstallmentsWithInterest = '';
+        val.installmentValueWithInterest = '';
+        val.installmentWithInterestPrice = '';
+      }
+      if (!val.hasInstallmentWithoutInterest) {
+        val.qtyInstallmentsWithoutInterest = '';
+        val.installmentValueWithoutInterest = '';
+        val.installmentWithoutInterestPrice = '';
+      }
+
       const newOption: SwitchOption = {
         id: uuidv4(),
         discountPercentage: this.discountPercentage || undefined,
-        ...this.switchForm.value
+        ...val
       };
       this.storageService.saveOption(newOption);
       this.switchForm.reset({
-        model: null, condition: null, isUnlocked: null, storageGb: null, store: '', paymentMethod: null, warrantyDays: ''
+        model: null, condition: null, isUnlocked: null, storageGb: null, store: '', paymentMethod: null, 
+        warrantyDays: null, hasInstallmentWithInterest: null, hasInstallmentWithoutInterest: null
       });
       this.currentStep = 1;
       this.discountPercentage = null;

@@ -16,6 +16,7 @@ interface GradedOption extends SwitchOption {
     cashPayment: number;
     installmentWithInterest: number;
     installmentWithoutInterest: number;
+    paymentFacility: number;
     price: number;
   };
   globalScore: number;
@@ -111,6 +112,13 @@ interface GradedOption extends SwitchOption {
                 </div>
               </th>
               
+              <th>
+                <div class="stepper" title="Peso Facilidade de Pgto">
+                  <button (click)="adjustWeight('paymentFacility', -1)">-</button>
+                  <span>{{ weights.paymentFacility }}</span>
+                  <button (click)="adjustWeight('paymentFacility', 1)">+</button>
+                </div>
+              </th>
               <th>-</th>
               <th>-</th>
             </tr>
@@ -125,6 +133,7 @@ interface GradedOption extends SwitchOption {
               <th>Pg. vista</th>
               <th>Parc. c/ j</th>
               <th>Parc. s/ j</th>
+              <th>Facilidade Pgto</th>
               <th>Preço Ger.</th>
               <th>Placar Final</th>
               <th>Ação</th>
@@ -151,6 +160,7 @@ interface GradedOption extends SwitchOption {
               <td [class]="getGradeClass(opt.dynamicGrades.cashPayment)">{{ opt.dynamicGrades.cashPayment | number:'1.0-1' }}</td>
               <td [class]="getGradeClass(opt.dynamicGrades.installmentWithInterest)">{{ opt.dynamicGrades.installmentWithInterest | number:'1.0-1' }}</td>
               <td [class]="getGradeClass(opt.dynamicGrades.installmentWithoutInterest)">{{ opt.dynamicGrades.installmentWithoutInterest | number:'1.0-1' }}</td>
+              <td [class]="getGradeClass(opt.dynamicGrades.paymentFacility)">{{ opt.dynamicGrades.paymentFacility | number:'1.0-1' }}</td>
               <td [class]="getGradeClass(opt.dynamicGrades.price)">{{ opt.dynamicGrades.price | number:'1.0-1' }}</td>
               <td class="global-score">{{ opt.globalScore | number:'1.0-0' }}</td>
               <td>
@@ -179,6 +189,7 @@ interface GradedOption extends SwitchOption {
             <div class="stepper-item"><span>Vista</span> <div class="stepper"><button (click)="adjustWeight('cashPayment', -1)">-</button><span>{{ weights.cashPayment }}</span><button (click)="adjustWeight('cashPayment', 1)">+</button></div></div>
             <div class="stepper-item"><span>C/Jur</span> <div class="stepper"><button (click)="adjustWeight('installmentWithInterest', -1)">-</button><span>{{ weights.installmentWithInterest }}</span><button (click)="adjustWeight('installmentWithInterest', 1)">+</button></div></div>
             <div class="stepper-item"><span>S/Jur</span> <div class="stepper"><button (click)="adjustWeight('installmentWithoutInterest', -1)">-</button><span>{{ weights.installmentWithoutInterest }}</span><button (click)="adjustWeight('installmentWithoutInterest', 1)">+</button></div></div>
+            <div class="stepper-item"><span>Fac.Pgto</span> <div class="stepper"><button (click)="adjustWeight('paymentFacility', -1)">-</button><span>{{ weights.paymentFacility }}</span><button (click)="adjustWeight('paymentFacility', 1)">+</button></div></div>
             <div class="stepper-item"><span>Pr.Ger</span> <div class="stepper"><button (click)="adjustWeight('price', -1)">-</button><span>{{ weights.price }}</span><button (click)="adjustWeight('price', 1)">+</button></div></div>
           </div>
         </div>
@@ -503,7 +514,8 @@ export class MatrixComponent implements OnInit, OnChanges {
   // Default Weights
   weights = {
     model: 5, condition: 8, unlock: 9, storage: 6, store: 7, warranty: 5,
-    cashPayment: 10, installmentWithInterest: 5, installmentWithoutInterest: 8, price: 5
+    cashPayment: 10, installmentWithInterest: 5, installmentWithoutInterest: 8, price: 5,
+    paymentFacility: 7
   };
 
   constructor(private storageService: StorageService) {}
@@ -610,6 +622,13 @@ export class MatrixComponent implements OnInit, OnChanges {
       if (noIntGrade > 0) { sumP += noIntGrade; countP++; }
       const genPriceGrade = countP > 0 ? sumP / countP : 0;
 
+      let facilityGrade = 2; // Nenhum parcelamento
+      if (opt.hasInstallmentWithoutInterest) {
+        facilityGrade = 10;
+      } else if (opt.hasInstallmentWithInterest) {
+        facilityGrade = 6;
+      }
+
       const dynamicGrades = {
         model: modelGrade,
         condition: conditionGrade,
@@ -620,6 +639,7 @@ export class MatrixComponent implements OnInit, OnChanges {
         cashPayment: cashGrade,
         installmentWithInterest: intGrade,
         installmentWithoutInterest: noIntGrade,
+        paymentFacility: facilityGrade,
         price: genPriceGrade
       };
 
@@ -633,6 +653,7 @@ export class MatrixComponent implements OnInit, OnChanges {
         (dynamicGrades.cashPayment * (this.weights.cashPayment || 0)) +
         (dynamicGrades.installmentWithInterest * (this.weights.installmentWithInterest || 0)) +
         (dynamicGrades.installmentWithoutInterest * (this.weights.installmentWithoutInterest || 0)) +
+        (dynamicGrades.paymentFacility * (this.weights.paymentFacility || 0)) +
         (dynamicGrades.price * (this.weights.price || 0))
       );
 

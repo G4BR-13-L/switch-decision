@@ -11,7 +11,9 @@ export interface SwitchOption {
   installmentValueWithInterest: number; // Single installment value
   installmentWithoutInterestPrice: number; // Total price without interest
   qtyInstallmentsWithoutInterest: number;
-  installmentValueWithoutInterest: number; // Single installment value
+  installmentValueWithoutInterest?: number; // Single installment value
+  hasInstallmentWithInterest: boolean;
+  hasInstallmentWithoutInterest: boolean;
   paymentMethod: 'PIX' | 'CREDITO' | 'BOLETO';
   warrantyDays: number; // Em dias, quanto maior melhor
   discountPercentage?: number;
